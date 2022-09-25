@@ -7,7 +7,6 @@ package com.frm.ahrsdisplay1;
 
 import com.fazecast.jSerialComm.SerialPort;
 import com.frm.ahrsdisplay1.models.FlightControlData;
-import com.frm.ahrsdisplay1.models.SerialComm;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -37,7 +36,6 @@ public class MainWindowFXMLController implements Initializable {
     @FXML
     private ComboBox<String> cb_selectBaudRate;
     
-    private SerialComm comport;
     private SerialPort selectedPort;
     private String selectedBaudRate;
     private StringProperty rx_data;
@@ -52,20 +50,20 @@ public class MainWindowFXMLController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        comport=new SerialComm();
-        SerialPort[] portsList=comport.getComPorts();
+        fc=new FlightControlData();
+        SerialPort[] portsList=fc.getComPorts();
         //Get COM ports into Combo Box
         ArrayList<SerialPort> ports=new ArrayList<>();
         Collections.addAll(ports, portsList);
         cb_selectComPort.getItems().addAll(ports);
         
         //Set Baud Rate Combo Box
-        String[] list=comport.getBaudRate();
+        String[] list=fc.getBaudRate();
         ArrayList<String> baudrateList=new ArrayList<>();
         Collections.addAll(baudrateList, list);
         cb_selectBaudRate.getItems().addAll(list);
         
-        fc=new FlightControlData(comport);
+        
         
         loader=new FXMLLoader();
         try {
@@ -80,26 +78,7 @@ public class MainWindowFXMLController implements Initializable {
         fc.flight_state.addListener((v,o,n)->{
             ahrs.setflightState(n);
         });
-        /*
-        //Yaw
-        fc.yaw.addListener((v,o,n)->{
-            ahrs.setHeading(n.doubleValue());
-        });
-        
-        //Roll
-        fc.roll.addListener((v,o,n)->{
-            ahrs.setRoll(n.doubleValue());
-        });
-        
-        //Pitch
-        fc.pitch.addListener((v,o,n)->{
-            ahrs.setPitch(n.doubleValue());
-        });
-        
-        //Altitude
-        fc.altitude.addListener((v,o,n)->{
-            ahrs.setAltitude(n.doubleValue());
-        });*/
+       
         
     }    
 
@@ -117,7 +96,7 @@ public class MainWindowFXMLController implements Initializable {
 
     @FXML
     private void openPortAction(ActionEvent event) throws IOException {
-        boolean stat=comport.open_Port(selectedPort, selectedBaudRate);
+        boolean stat=fc.open_Port(selectedPort, selectedBaudRate);
         Stage stage=new Stage();
            
         Scene scene=new Scene(root);
@@ -133,11 +112,11 @@ public class MainWindowFXMLController implements Initializable {
 
     @FXML
     private void selectBaudRateAction(ActionEvent event) {
-        comport.close_Port();
+        fc.close_Port();
     }
     
     public void exitApp(){
-        comport.close_Port();
+        fc.close_Port();
         Platform.exit();
     }
     

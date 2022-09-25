@@ -10,12 +10,12 @@ import com.fazecast.jSerialComm.SerialPortEvent;
 import com.fazecast.jSerialComm.SerialPortMessageListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 /**
- * This class handles the serial com ports.
- * Opens the selected port at the selected baud rate and it is packet delimited.
+ * This class handles the serial COM ports.
+ * Opens the selected port at the selected baud rate and it is set as packet delimited.
+ * Delimiter is set as 0x0a,0x0d
  * RX data will be available in rx_string variable instance of String Property
  * so it can be listened on the calling class
  * @author frive
@@ -29,10 +29,11 @@ public class SerialComm {
     public StringProperty rx_data; //RX buffer
     public BooleanProperty portStatus; //To notify if COM port is connected or not
     private int  timer; //This is a counter of seconds since last packet received
-      
-    //Class constructor. It creates an available com port list and also the 
-    //available baud rates
+       
+
     public SerialComm(){
+        
+        
         //Create COM port list
        portList=SerialPort.getCommPorts();
        
@@ -40,8 +41,7 @@ public class SerialComm {
        
         baudRateList=new String[]{"9600","19200","38400","57600","115200"};
         
-        //Create RX Buffer
-        rx_data=new SimpleStringProperty();
+        
         portStatus=new SimpleBooleanProperty(false);
         
          //Start eleapse timer for lost communication
@@ -50,8 +50,21 @@ public class SerialComm {
        timer.setDaemon(true);
        timer.start();
     }
-    
-    //Open COM Port
+   
+    /**
+     * Set the RX data buffer to receive from serial port.
+     * @param rx_buffer Is StringProperty type so a listener can be added in the
+     * calling class to process de RX data
+     */
+    public void setRX_Buffer(StringProperty rx_buffer){
+        this.rx_data=rx_buffer;
+    }
+    /**
+     * Open the selected port and set the baud rate
+     * @param port
+     * @param selectedBaudRate
+     * @return true if opening succeeded 
+     */
     public boolean open_Port(SerialPort port, String selectedBaudRate){
         SerialComm.selectedPort=port;
         SerialComm.selectedBaudRate=selectedBaudRate;
@@ -64,31 +77,49 @@ public class SerialComm {
          
     }
     
-    //Check if Port is Open
+    /**
+     * Check if port is open
+     * @return true if open
+     */
     public boolean is_open(){
         return selectedPort.isOpen();
     }
-    //Close Port
+    /**
+     * Close the open port
+     * @return true is close properly
+     */
     public boolean close_Port(){
         this.removeDataListener();
         return selectedPort.closePort();
    }
     
-   //Retrieve COM Ports
+    /**
+     * Get the list of available Serial ports
+     * @return Array of SerialPort type with ports
+     */
     public SerialPort[] getComPorts(){
         return this.portList;
     }
     
-    //Retrieve Baud Rate List
+    /**
+     * Return a list of available Baud Rates to open the port
+     * @return 
+     */
     public String[]getBaudRate(){
         return baudRateList;
     }
     
-   //Remove Data Listener
+    /**
+     * Remove the listener on the open port. This action will stop communication
+     */
     public void removeDataListener(){
         selectedPort.removeDataListener();
     }
-    //Transmit data
+    /**
+     * Transmit the String on the open serial port
+     * @param data
+     * @return Returns the number of bytes successfully transmitted
+     */
     public int tx_data(String data){
         return selectedPort.writeBytes(data.getBytes(), data.getBytes().length);
     }

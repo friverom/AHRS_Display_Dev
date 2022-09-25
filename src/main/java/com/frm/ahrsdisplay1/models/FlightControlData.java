@@ -6,9 +6,7 @@
 package com.frm.ahrsdisplay1.models;
 
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -16,60 +14,40 @@ import javafx.beans.property.StringProperty;
  *
  * @author frive
  */
-public class FlightControlData {
+public class FlightControlData extends SerialComm{
     
     public StringProperty rx_data;
     public StringProperty flight_state;
     private int comErrors; //Checksum error counter
     public BooleanProperty connectionStatus;
-    public DoubleProperty voltage;
-    public DoubleProperty current;
-    public DoubleProperty yaw;
-    public DoubleProperty pitch;
-    public DoubleProperty roll;
-    public DoubleProperty altitude;
-    public DoubleProperty temperature;
-    
-    private SerialComm serialcomm;
-    
-    //Class constructor
-    public FlightControlData(SerialComm serialcomm){
-        this.serialcomm=serialcomm;
-        rx_data=new SimpleStringProperty();
-        flight_state=new SimpleStringProperty();
-        voltage=new SimpleDoubleProperty();
-        current=new SimpleDoubleProperty();
-        yaw=new SimpleDoubleProperty();
-        pitch=new SimpleDoubleProperty();
-        roll=new SimpleDoubleProperty();
-        altitude=new SimpleDoubleProperty();
-        temperature=new SimpleDoubleProperty();
+       
         
+    //Class constructor
+    public FlightControlData(){
+        
+        super();
+        rx_data=new SimpleStringProperty();
+        super.setRX_Buffer(rx_data);
+        
+        flight_state=new SimpleStringProperty();
+            
         connectionStatus=new SimpleBooleanProperty(false);
         comErrors=0;
         
         //Data listener for RX event
-        serialcomm.rx_data.addListener((v,oldValue,newValue)->{
-            rx_data.set(newValue);
+        rx_data.addListener((v,oldValue,newValue)->{
+         //   rx_data.set(newValue);
             connectionStatus.set(false);
             processData(newValue);
         });
         
         //Data listener for port disconnection
-        serialcomm.portStatus.addListener((v,oldValue,newValue)->{
+        portStatus.addListener((v,oldValue,newValue)->{
             connectionStatus.set(true);
         });
         
     };
-    //Just for testing the concept
-    public double getVoltage(){
-        return voltage.doubleValue();
-    }
-    
-    public double getCurrent(){
-        return current.doubleValue();
-    }
-    
+       
     //
     public Boolean getConnectionStatus(){
         return connectionStatus.getValue();
@@ -85,7 +63,7 @@ public class FlightControlData {
     
     public void sendData(String data){
         String str=addCheckSum(data);
-         serialcomm.tx_data(str);
+         super.tx_data(str);
     }
      //Process data from RX Buffer
     private int processData(String data){
@@ -104,20 +82,16 @@ public class FlightControlData {
         if(chkSumTx==chkSumLcl){
         switch (items[0]) {
             case "$dat1":
-                voltage.set(Double.parseDouble(items[1]));
+                
                 break;
             
             case "$dat2":
-                current.set(Double.parseDouble(items[1]));
+                
                 break;
                 
             case "$dat3":
                 flight_state.set(getDataString(data,5));
-                yaw.set(Double.parseDouble(items[1]));
-                pitch.set(Double.parseDouble(items[2]));
-                roll.set(Double.parseDouble(items[3]));
-                altitude.set(Double.parseDouble(items[4]));
-                temperature.set(Double.parseDouble(items[5]));
+               
                  break;
                 
             default:
