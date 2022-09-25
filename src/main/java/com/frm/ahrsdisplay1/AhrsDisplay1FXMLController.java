@@ -110,8 +110,9 @@ public class AhrsDisplay1FXMLController implements Initializable {
    
       
     //Define Text array list
-    ArrayList<TextNotes> msg1_list=new ArrayList<>();
-    private final int NUM_MSG=10;
+    ArrayList<TextNotes>[] msg_list=new ArrayList[6]; //6 layers of text
+    private int active_text_msg=0; //Text layer to display
+   
    
     FlightTimer ft;
     StringProperty elapse_t;
@@ -156,38 +157,39 @@ public class AhrsDisplay1FXMLController implements Initializable {
         
         gcNavLayer.setFill(Color.TRANSPARENT);
         gcNavLayer.fillRect(0, 0, gcStaticLayer.getCanvas().getWidth(), gcStaticLayer.getCanvas().getHeight());
-        
-        init_msg1_list(msg1_list);
-        this.setLabel(0, "KTS");
-        this.setLabel(1, "FTS");
-        this.setLabel(2, "VDC ");
-        this.setText(2, "24.8");
-        msg1_list.get(2).setFontSize(11);
-        this.setLabel(3, "AMP ");
-        this.setText(3, "50.3");
-        msg1_list.get(3).setFontSize(11);
-        this.setLabel(4, "mAH ");
-        this.setText(4, "17.357");
-        msg1_list.get(4).setFontSize(11);
-        this.setLabel(5, "QNH ");
-        this.setText(5, "1013");
-        msg1_list.get(5).setFontSize(11);
-        this.setLabel(6, "OAT ");
-        msg1_list.get(6).setFontSize(11);
-        this.setLabel(7, "FT ");
-        msg1_list.get(7).setFontSize(11);
-        
+     
+       //Create all text layer
+       for(int i=0; i<msg_list.length; i++){
+           msg_list[i]=new ArrayList<>();
+       }
+       
+       //Initialize Text Layer 0
+       String label_0="KTS,FTS,VDC ,AMP ,mAH ,QNH ,OAT ,FT ";
+       Point2D[] posXY={new Point2D(20,50),
+       new Point2D(AHRS_MAX_WIDTH-30,50),
+       new Point2D(80,55),
+       new Point2D(80,70),
+       new Point2D(80,85),
+       new Point2D(AHRS_MAX_WIDTH-130,AHRS_MAX_HEIGHT-55),
+       new Point2D(AHRS_MAX_WIDTH-130,70),
+       new Point2D(AHRS_MAX_WIDTH-130,55)
+       };
+       
+       String txt=" , ,24.5,50.3,17.537,1013,27.0,00:00:00";
+            
+        this.setLabel(0, label_0,posXY);
+        this.setTextLayer(0, txt);
+          
         elapse_t=new SimpleStringProperty();
         ft=new FlightTimer(elapse_t);
         elapse_t.addListener((v,o,n)->{
-            setText(7,elapse_t.get());
+            setText(0,7,elapse_t.get());
         });
         
         ft.startTimer();
         
         hdgLabels = new HeadingDisplay();
-        
-        
+            
         roll=0;
         pitch=0;
         heading=0;
@@ -208,10 +210,11 @@ public class AhrsDisplay1FXMLController implements Initializable {
             new Point2D(AHRS_ASP_POS_X+4+AHRS_RP_XW,AHRS_ASP_POS_Y+AHRS_ASP_LENGHT-AHRS_RP_XW/2),
             new Point2D(AHRS_ASP_POS_X+4+AHRS_RP_XW,AHRS_ASP_POS_Y+AHRS_ASP_LENGHT+AHRS_RP_XW/2 )});
         
+            updateAHRS();
     }   
     
     //Actualize flight information
-    //state string "Yaw, pitch, roll, altitude"
+    //state string "Yaw, pitch, roll, altitude, temperature"
     public void setflightState(String state){
     
         String[] str=state.split(",");
@@ -229,8 +232,20 @@ public class AhrsDisplay1FXMLController implements Initializable {
         
     }
     
-   
-
+/**
+ * Set text for active Layer
+ * @param index Active layer
+ * @param state CSV "msg1, msg2, msg3, msg4, msg5, msg6, msg7, msg8
+ */   
+public void setTextLayer(int index, String state){
+    
+    String[] str=state.split(",");
+    
+    for(int i=0;i<str.length;i++){
+        msg_list[index].get(i).text=str[i];
+    }
+    updateAHRS();
+}
     
     
     public void setMinAirSpeed(double minAirspeed){
@@ -276,25 +291,48 @@ public class AhrsDisplay1FXMLController implements Initializable {
 
     public void setOutsideTemp(double outsideTemp) {
         String str=String.format("%.1f",outsideTemp);
-        setText(6,str);
+        setText(0,6,str);
        
     }
 
+    /**
+     * Set Label for each message on indicated layer
+     * @param list_index layer to set labels
+     * @param label CSV "lbl1,lbl2,lbl3,lbl4,lbl5,lbl6,lbl7,lbl8
+     * @param pos Position on AHRS for each label. It is an Array of Point2D
+     */   
+    public void setLabel(int list_index, String label, Point2D[] pos){
+        String[] items=label.split(",");
+        create_msg_list(msg_list[list_index], items.length);
+        
+        for(int i=0;i<items.length;i++){
+            msg_list[list_index].get(i).label=items[i];
+        }
+        
        
-    public void setLabel(int msg, String label){
-        msg1_list.get(msg).setLabel(label);
+        //Should throw exception if items.lenght != posXY.lenght
+        for(int i=0; i<pos.length; i++){
+            msg_list[list_index].get(i).posX=pos[i].getX();
+            msg_list[list_index].get(i).posY=pos[i].getY();
+        }
+        
     }
-    
-    public void setText(int msg, String text){
-        msg1_list.get(msg).setText(text);
+    /**
+     * Set Text for individual message on indicated layer
+     * @param index layer
+     * @param msg Message to set
+     * @param text Message
+     */
+    public void setText(int index, int msg, String text){
+        msg_list[active_text_msg].get(msg).setText(text);
     }
     
     public void setTextColor(int msg, Paint color){
-        msg1_list.get(msg).setColor(color);
+        msg_list[active_text_msg].get(msg).setColor(color);
     }
     
     public void startBlink(int msg){
-        msg1_list.get(msg).startBlink();
+        msg_list[active_text_msg].get(msg).startBlink();
     }
     
     private void updateAHRS(){
@@ -377,7 +415,7 @@ public class AhrsDisplay1FXMLController implements Initializable {
                     public void run() {
                         
                         gc.clearRect(0, 0, gc.getCanvas().getWidth(), gc.getCanvas().getHeight());
-                        for(TextNotes m:msg1_list){
+                        for(TextNotes m:msg_list[active_text_msg]){
                             gc.setFill(m.color);
                             gc.setFont(Font.font(m.fontSize));
                             gc.fillText(m.label+m.text, m.posX, m.posY);
@@ -734,7 +772,29 @@ public class AhrsDisplay1FXMLController implements Initializable {
     }
 }
 }
+    private ArrayList<TextNotes> create_msg_list(ArrayList<TextNotes> list, int num_msg){
+        
+        for(int i=0;i<num_msg;i++){
+            list.add(new TextNotes(0,0));
+        }
+        return list;
+    }
     
+    
+    private void init_msg_items(ArrayList<TextNotes>[] list){
+        list[0].get(0).setPosXY(20,50); //KTS Label
+        list[0].get(1).setPosXY(AHRS_MAX_WIDTH-30,50); //FTS Label
+        list[0].get(2).setPosXY(80,55); //Voltage label
+        list[0].get(3).setPosXY(80,70); //Amps
+        list[0].get(4).setPosXY(80,85); //Bat Capacity mAH
+        list[0].get(5).setPosXY(AHRS_MAX_WIDTH-130,AHRS_MAX_HEIGHT-55); //QNH Label
+        list[0].get(6).setPosXY(AHRS_MAX_WIDTH-130,70); //OAT Label
+        list[0].get(7).setPosXY(AHRS_MAX_WIDTH-130,55); //FT Label (Flight Timer)
+        list[0].get(8).setPosXY(0,0);
+        list[0].get(9).setPosXY(0,0);
+        list[0].get(10).setPosXY(0,0);
+        list[0].get(11).setPosXY(0,0);
+    }
     private void init_msg1_list(ArrayList<TextNotes> list){
         list.add(new TextNotes(20,50)); //KTS Label
         list.add(new TextNotes(AHRS_MAX_WIDTH-30,50)); //FTS Label
@@ -747,14 +807,20 @@ public class AhrsDisplay1FXMLController implements Initializable {
         list.add(new TextNotes(0,0));
         list.add(new TextNotes(0,0));
         list.add(new TextNotes(0,0));
+        list.add(new TextNotes(0,0));
+        list.add(new TextNotes(0,0));
+        list.add(new TextNotes(0,0));
+        list.add(new TextNotes(0,0));
         
     }
+    
+    
     private class TextNotes implements Runnable {
 
         private final int BLINK_TIMER = 500;
         private volatile int blinkState = 0;
-        private final double posX;
-        private final double posY;
+        private double posX;
+        private double posY;
         private volatile Paint color = Color.BLACK;
         private volatile Paint last_color = color;
         private volatile int fontSize = 12;
@@ -768,6 +834,11 @@ public class AhrsDisplay1FXMLController implements Initializable {
             this.posY=posY;
         }
         
+        public void setPosXY(double posX, double posY) {
+            this.posX = posX;
+            this.posY=posY;
+        }
+
         public synchronized void setColor(Paint color) {
             this.color = color;
             this.last_color=color;
