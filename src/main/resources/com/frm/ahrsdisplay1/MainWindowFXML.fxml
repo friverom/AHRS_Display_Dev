@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.frm.ahrsdisplay1.MainWindowFXMLController">
+   <children>
+      <ComboBox fx:id="cb_selectComPort" layoutX="93.0" layoutY="80.0" onAction="#selectComPortAction" prefWidth="150.0" promptText="Com Ports" />
+      <ComboBox fx:id="cb_selectBaudRate" layoutX="365.0" layoutY="80.0" onAction="#setBaudRateAction" prefWidth="150.0" promptText="Baud Rates" />
+      <Button layoutX="134.0" layoutY="146.0" mnemonicParsing="false" onAction="#openPortAction" text="Open" />
+      <Button layoutX="414.0" layoutY="146.0" mnemonicParsing="false" onAction="#selectBaudRateAction" text="Close Port" />
+   </children>
+</AnchorPane>

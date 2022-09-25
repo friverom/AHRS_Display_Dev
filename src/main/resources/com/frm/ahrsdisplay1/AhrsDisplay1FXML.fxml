@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.layout.StackPane?>
+
+<StackPane xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.frm.ahrsdisplay1.AhrsDisplay1FXMLController">
+   <children>
+      <Canvas fx:id="ahLayer" height="500.0" width="500.0" />
+      <Canvas fx:id="txtLayer" height="500.0" width="500.0" />
+      <Canvas fx:id="staticLayer" height="500.0" width="500.0" />
+      <Canvas fx:id="fltParamLayer" height="500.0" width="500.0" />
+      <Canvas fx:id="navLayer" height="500.0" width="500.0" />
+   </children>
+</StackPane>
