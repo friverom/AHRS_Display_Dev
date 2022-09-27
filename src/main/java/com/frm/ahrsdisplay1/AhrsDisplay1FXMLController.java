@@ -224,7 +224,7 @@ public class AhrsDisplay1FXMLController implements Initializable {
         this.roll=Double.parseDouble(str[2]);
         this.altitude=Double.parseDouble(str[3]);
         
-        setText(0,6,str[4]); //Display OAT
+        setText(0,6,str[4],true,Color.RED); //Display OAT
         updateAHRS();
         
         
@@ -822,42 +822,7 @@ public class AhrsDisplay1FXMLController implements Initializable {
         return list;
     }
     
-    
-    private void init_msg_items(ArrayList<TextNotes>[] list){
-        list[0].get(0).setPosXY(20,50); //KTS Label
-        list[0].get(1).setPosXY(AHRS_MAX_WIDTH-30,50); //FTS Label
-        list[0].get(2).setPosXY(80,55); //Voltage label
-        list[0].get(3).setPosXY(80,70); //Amps
-        list[0].get(4).setPosXY(80,85); //Bat Capacity mAH
-        list[0].get(5).setPosXY(AHRS_MAX_WIDTH-130,AHRS_MAX_HEIGHT-55); //QNH Label
-        list[0].get(6).setPosXY(AHRS_MAX_WIDTH-130,70); //OAT Label
-        list[0].get(7).setPosXY(AHRS_MAX_WIDTH-130,55); //FT Label (Flight Timer)
-        list[0].get(8).setPosXY(0,0);
-        list[0].get(9).setPosXY(0,0);
-        list[0].get(10).setPosXY(0,0);
-        list[0].get(11).setPosXY(0,0);
-    }
-    private void init_msg1_list(ArrayList<TextNotes> list){
-        list.add(new TextNotes(20,50)); //KTS Label
-        list.add(new TextNotes(AHRS_MAX_WIDTH-30,50)); //FTS Label
-        list.add(new TextNotes(80,55)); //Voltage label
-        list.add(new TextNotes(80,70)); //Amps
-        list.add(new TextNotes(80,85)); //Bat capacity
-        list.add(new TextNotes(AHRS_MAX_WIDTH-130,AHRS_MAX_HEIGHT-55)); //QNH Label
-        list.add(new TextNotes(AHRS_MAX_WIDTH-130,70)); //OAT Label
-        list.add(new TextNotes(AHRS_MAX_WIDTH-130,55)); //FT Label
-        list.add(new TextNotes(0,0));
-        list.add(new TextNotes(0,0));
-        list.add(new TextNotes(0,0));
-        list.add(new TextNotes(0,0));
-        list.add(new TextNotes(0,0));
-        list.add(new TextNotes(0,0));
-        list.add(new TextNotes(0,0));
-        
-    }
-    
-    
-    private class TextNotes implements Runnable {
+     private class TextNotes implements Runnable {
 
         private final int BLINK_TIMER = 500;
         private volatile int blinkState = 0;
@@ -881,10 +846,14 @@ public class AhrsDisplay1FXMLController implements Initializable {
             this.posY=posY;
         }
 
-        public synchronized void setColor(Paint color) {
-            this.color = color;
-            this.last_color=color;
-        }
+         public synchronized void setColor(Paint color) {
+             if (!running) {
+                 this.color = color;
+                 this.last_color = color;
+             } else {
+                 this.last_color = color;
+             }
+         }
 
         public synchronized void setFontSize(int fontSize) {
             this.fontSize = fontSize;
@@ -899,12 +868,13 @@ public class AhrsDisplay1FXMLController implements Initializable {
         }
 
         public void startBlink() {
+            if(!running){
             blk = new Thread(this);
             blk.setDaemon(true);
-            running = true;
+           // running = true;
             blinkState = 1;
             blk.start();
-            
+            }
         }
 
         public synchronized void stopBlink() {
