@@ -85,12 +85,6 @@ public class AhrsDisplay1FXMLController implements Initializable {
     private double minAlt;
     private double maxAlt;
    
-    private double temperature;
-    
-    private double batteryVoltage;
-    private double batteryCurremt;
-    private double batteryCapacity;
-    private double outsideTemp;
     private long flightTime;
     private String elapseTimer="00:00:00";
 
@@ -215,6 +209,10 @@ public class AhrsDisplay1FXMLController implements Initializable {
     
     //Actualize flight information
     //state string "Yaw, pitch, roll, altitude, temperature"
+    /**
+     * Actualize flying state parameters
+     * @param state CSV "Yaw,pitch,roll,altitude,temperature"
+     */
     public void setflightState(String state){
     
         String[] str=state.split(",");
@@ -225,74 +223,32 @@ public class AhrsDisplay1FXMLController implements Initializable {
         this.pitch=Double.parseDouble(str[1]);
         this.roll=Double.parseDouble(str[2]);
         this.altitude=Double.parseDouble(str[3]);
-        this.temperature=Double.parseDouble(str[4]);
-        setOutsideTemp(this.temperature);
+        
+        setText(0,6,str[4]); //Display OAT
         updateAHRS();
         
         
     }
     
-/**
- * Set text for active Layer
- * @param index Active layer
- * @param state CSV "msg1, msg2, msg3, msg4, msg5, msg6, msg7, msg8
- */   
-public void setTextLayer(int index, String state){
-    
-    String[] str=state.split(",");
-    
-    for(int i=0;i<str.length;i++){
-        msg_list[index].get(i).text=str[i];
-    }
-    updateAHRS();
-}
-    
-    
-    public void setMinAirSpeed(double minAirspeed){
-        this.minSpeed=minAirspeed;
-    }
-    
-    public void setMaxAirSpeed(double maxAirspeed){
-        double maxS=Math.ceil(maxAirspeed);
-        this.maxSpeed=((int)maxS/10)*10;
+    /**
+     * Set text for active Layer
+     *
+     * @param index Active layer
+     * @param state CSV "msg1, msg2, msg3, msg4, msg5, msg6, msg7, msg8
+     */
+    public void setTextLayer(int index, String state) {
+
+        String[] str = state.split(",");
         
-    }
-
-    
-
-    public void setMaxAltitude(double altitude){
-    
-        double maxA=Math.ceil(altitude);
-        this.maxAlt=((int)maxA/10)*10;
-    }
-    
-    public void setMinAltitude(double altitude){
-        
-        double minA=Math.floor(altitude);
-        this.minAlt=((int)minA/10)*10;
-        
-    }
-    
-  
-    public void setBatteryVoltage(double batteryVoltage) {
-        this.batteryVoltage = batteryVoltage;
+        //Check if num of msgs are greater than 8
+        int l = str.length;
+        if(l>8){
+            l=8;
+        }
+        for (int i = 0; i < l; i++) {
+            msg_list[index].get(i).text = str[i];
+        }
         updateAHRS();
-    }
-
-    public void setBatteryCurremt(double batteryCurremt) {
-        this.batteryCurremt = batteryCurremt;
-        updateAHRS();
-    }
-
-    public void setBatteryCapacity(double batteryCapacity) {
-        this.batteryCapacity = batteryCapacity;
-        updateAHRS();
-    }
-
-    public void setOutsideTemp(double outsideTemp) {
-        String str=String.format("%.1f",outsideTemp);
-        setText(0,6,str);
-       
     }
 
     /**
@@ -301,21 +257,24 @@ public void setTextLayer(int index, String state){
      * @param label CSV "lbl1,lbl2,lbl3,lbl4,lbl5,lbl6,lbl7,lbl8
      * @param pos Position on AHRS for each label. It is an Array of Point2D
      */   
-    public void setLabel(int list_index, String label, Point2D[] pos){
-        String[] items=label.split(",");
-        create_msg_list(msg_list[list_index], items.length);
-        
-        for(int i=0;i<items.length;i++){
-            msg_list[list_index].get(i).label=items[i];
+    public void setLabel(int list_index, String label, Point2D[] pos) {
+        String[] items = label.split(",");
+        int l = items.length;
+        int p = pos.length;
+
+        if ((l == p) && l < 9) {
+            create_msg_list(msg_list[list_index], items.length);
+
+            for (int i = 0; i < items.length; i++) {
+                msg_list[list_index].get(i).label = items[i];
+            }
+
+            //Should throw exception if items.lenght != posXY.lenght
+            for (int i = 0; i < pos.length; i++) {
+                msg_list[list_index].get(i).posX = pos[i].getX();
+                msg_list[list_index].get(i).posY = pos[i].getY();
+            }
         }
-        
-       
-        //Should throw exception if items.lenght != posXY.lenght
-        for(int i=0; i<pos.length; i++){
-            msg_list[list_index].get(i).posX=pos[i].getX();
-            msg_list[list_index].get(i).posY=pos[i].getY();
-        }
-        
     }
     /**
      * Set Text for individual message on indicated layer
@@ -323,18 +282,79 @@ public void setTextLayer(int index, String state){
      * @param msg Message to set
      * @param text Message
      */
-    public void setText(int index, int msg, String text){
-        msg_list[active_text_msg].get(msg).setText(text);
+    public void setText(int index, int msg, String text) {
+
+        if (msg < 8) {
+            msg_list[active_text_msg].get(msg).setText(text);
+        }
+    }
+    /**
+     * Set the message text Color
+     * @param msg Message to set color
+     * @param color Color value of class Paint
+     */
+    public void setTextColor(int msg, Paint color) {
+        if (msg < 8) {
+            msg_list[active_text_msg].get(msg).setColor(color);
+        }
+    }
+    /**
+     * Set message text to blink
+     * @param msg message index
+     */
+    public void startBlink(int msg) {
+        if (msg < 8) {
+            msg_list[active_text_msg].get(msg).startBlink();
+        }
+    }
+    /**
+     * Select the active text layer to display om AHRS
+     * @param index Active layer number
+     */
+    public void selectActiveTextLayer(int index) {
+        if (index < 6) {
+            this.active_text_msg = index;
+        }
+    }
+ 
+    /**
+     * Set minimum airspeed for indicator
+     * @param minAirspeed 
+     */
+    public void setMinAirSpeed(double minAirspeed){
+        this.minSpeed=minAirspeed;
+    }
+    /**
+     * Set maximum airspeed for indicator
+     * @param maxAirspeed 
+     */
+    public void setMaxAirSpeed(double maxAirspeed){
+        double maxS=Math.ceil(maxAirspeed);
+        this.maxSpeed=((int)maxS/10)*10;
+        
+    }
+
+    /**
+     * Set Maximum altitude for indicator
+     * @param altitude 
+     */
+    public void setMaxAltitude(double altitude){
+    
+        double maxA=Math.ceil(altitude);
+        this.maxAlt=((int)maxA/10)*10;
+    }
+    /**
+     * Set minimum altitude for indicator
+     * @param altitude 
+     */
+    public void setMinAltitude(double altitude){
+        
+        double minA=Math.floor(altitude);
+        this.minAlt=((int)minA/10)*10;
+        
     }
     
-    public void setTextColor(int msg, Paint color){
-        msg_list[active_text_msg].get(msg).setColor(color);
-    }
-    
-    public void startBlink(int msg){
-        msg_list[active_text_msg].get(msg).startBlink();
-    }
-    
+    //Updates the AHRS Display
     private void updateAHRS(){
     
         updateAH(gcAhLayer);
