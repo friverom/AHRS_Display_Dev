@@ -289,6 +289,28 @@ public class AhrsDisplay1FXMLController implements Initializable {
         }
     }
     /**
+     * Set Text for individual message on indicated layer plus color and blink state
+     * @param index active message layer
+     * @param msg message to write to
+     * @param text message text
+     * @param blink true for blink
+     * @param color Color
+     */
+    public void setText(int index, int msg, String text, boolean blink, Paint color){
+    
+        if (msg < 8) {
+            msg_list[active_text_msg].get(msg).setText(text);
+            msg_list[active_text_msg].get(msg).setColor(color);
+            if(blink){
+                msg_list[active_text_msg].get(msg).startBlink();
+            }else{
+                msg_list[active_text_msg].get(msg).stopBlink();
+            }
+            
+        }
+        
+    }
+    /**
      * Set the message text Color
      * @param msg Message to set color
      * @param color Color value of class Paint
