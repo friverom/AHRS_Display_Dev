@@ -206,7 +206,13 @@ public class AhrsDisplay1FXMLController implements Initializable {
         
             updateAHRS();
     }   
+    /**
+     * Close the window and terminates running threads
+     */
+    public void exitApp(){
     
+        Platform.exit();
+    }
     //Actualize flight information
     //state string "Yaw, pitch, roll, altitude, temperature"
     /**
@@ -224,7 +230,7 @@ public class AhrsDisplay1FXMLController implements Initializable {
         this.roll=Double.parseDouble(str[2]);
         this.altitude=Double.parseDouble(str[3]);
         
-        setText(0,6,str[4],true,Color.RED); //Display OAT
+        setText(0,6,str[4]); //Display OAT
         updateAHRS();
         
         

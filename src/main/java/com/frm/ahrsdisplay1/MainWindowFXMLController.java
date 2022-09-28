@@ -117,6 +117,7 @@ public class MainWindowFXMLController implements Initializable {
     
     public void exitApp(){
         fc.close_Port();
+        ahrs.exitApp();
         Platform.exit();
     }
     
