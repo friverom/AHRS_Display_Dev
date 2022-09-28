@@ -104,8 +104,11 @@ public class AhrsDisplay1FXMLController implements Initializable {
    
       
     //Define Text array list
-    ArrayList<TextNotes>[] msg_list=new ArrayList[6]; //6 layers of text
+     private final int NUM_LAYERS=6;
+    private final int NUM_MSG=8;
+    ArrayList<TextNotes>[] msg_list=new ArrayList[NUM_LAYERS]; //6 layers of text
     private int active_text_msg=0; //Text layer to display
+    
    
    
     FlightTimer ft;
@@ -248,8 +251,8 @@ public class AhrsDisplay1FXMLController implements Initializable {
         
         //Check if num of msgs are greater than 8
         int l = str.length;
-        if(l>8){
-            l=8;
+        if(l>NUM_MSG){
+            l=NUM_MSG;
         }
         for (int i = 0; i < l; i++) {
             msg_list[index].get(i).text = str[i];
@@ -268,7 +271,7 @@ public class AhrsDisplay1FXMLController implements Initializable {
         int l = items.length;
         int p = pos.length;
 
-        if ((l == p) && l < 9) {
+        if ((l == p) && l < NUM_MSG+1) {
             create_msg_list(msg_list[list_index], items.length);
 
             for (int i = 0; i < items.length; i++) {
@@ -283,6 +286,21 @@ public class AhrsDisplay1FXMLController implements Initializable {
         }
     }
     /**
+     * Set Label position
+     * @param layer 
+     * @param msg message number
+     * @param x
+     * @param y 
+     */
+    public void setLabelPosition(int layer,int msg, double x, double y){
+    
+        if((layer<NUM_LAYERS)&&(msg<NUM_MSG)){
+            msg_list[layer].get(msg).posX = x;
+            msg_list[layer].get(msg).posY = y;
+        }
+        
+    }
+    /**
      * Set Text for individual message on indicated layer
      * @param index layer
      * @param msg Message to set
@@ -290,7 +308,7 @@ public class AhrsDisplay1FXMLController implements Initializable {
      */
     public void setText(int index, int msg, String text) {
 
-        if (msg < 8) {
+        if (msg < NUM_MSG) {
             msg_list[active_text_msg].get(msg).setText(text);
         }
     }
@@ -304,7 +322,7 @@ public class AhrsDisplay1FXMLController implements Initializable {
      */
     public void setText(int index, int msg, String text, boolean blink, Paint color){
     
-        if (msg < 8) {
+        if (msg < NUM_MSG) {
             msg_list[active_text_msg].get(msg).setText(text);
             msg_list[active_text_msg].get(msg).setColor(color);
             if(blink){
@@ -321,18 +339,24 @@ public class AhrsDisplay1FXMLController implements Initializable {
      * @param msg Message to set color
      * @param color Color value of class Paint
      */
-    public void setTextColor(int msg, Paint color) {
-        if (msg < 8) {
-            msg_list[active_text_msg].get(msg).setColor(color);
+    public void setTextColor(int layer, int msg, Paint color) {
+        if ((msg < NUM_MSG)&&(layer<NUM_LAYERS)) {
+            msg_list[layer].get(msg).setColor(color);
         }
     }
     /**
      * Set message text to blink
      * @param msg message index
      */
-    public void startBlink(int msg) {
-        if (msg < 8) {
-            msg_list[active_text_msg].get(msg).startBlink();
+    public void startBlink(int layer,int msg) {
+        if ((msg < NUM_MSG)&&(layer<NUM_LAYERS)) {
+            msg_list[layer].get(msg).startBlink();
+        }
+    }
+    
+    public void stopBlink(int layer, int msg){
+        if ((msg < NUM_MSG)&&(layer<NUM_LAYERS)) {
+            msg_list[layer].get(msg).stopBlink();
         }
     }
     /**
@@ -340,7 +364,7 @@ public class AhrsDisplay1FXMLController implements Initializable {
      * @param index Active layer number
      */
     public void selectActiveTextLayer(int index) {
-        if (index < 6) {
+        if (index < NUM_LAYERS) {
             this.active_text_msg = index;
         }
     }
@@ -362,6 +386,9 @@ public class AhrsDisplay1FXMLController implements Initializable {
         
     }
 
+    public void setAirSpeed(double asp){
+        this.airSpeed=asp;
+    }
     /**
      * Set Maximum altitude for indicator
      * @param altitude 
@@ -857,7 +884,7 @@ public class AhrsDisplay1FXMLController implements Initializable {
                  this.color = color;
                  this.last_color = color;
              } else {
-                 this.last_color = color;
+               //  this.last_color = color;
              }
          }
 
@@ -877,7 +904,7 @@ public class AhrsDisplay1FXMLController implements Initializable {
             if(!running){
             blk = new Thread(this);
             blk.setDaemon(true);
-           // running = true;
+            running = true;
             blinkState = 1;
             blk.start();
             }
@@ -891,7 +918,7 @@ public class AhrsDisplay1FXMLController implements Initializable {
 
         @Override
         public void run() {
-            running = true;
+          //  running = true;
             while (running) {
                 switch (blinkState) {
 
